@@ -34,6 +34,10 @@
 		}
 
 .progress-container > progress {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
 		accent-color: #00b3fff1; 
     width: 100%;
     height: 0.2vw; 
@@ -41,3 +45,17 @@
     position: absolute;
 }    
 
+/* 1. CONTAINER BACKGROUND (Chrome, Safari, Edge) */
+.progress-container > progress::-webkit-progress-bar {
+  background-color: #00b3fff1;
+}
+
+/* 2. PROGRESS VALUE BAR (Chrome, Safari, Edge) */
+.progress-container > progress::-webkit-progress-value {
+  background-color: #00b3fff1;
+}
+
+/* 3. PROGRESS VALUE BAR (Firefox alternative) */
+.progress-container > progress::-moz-progress-bar {
+  background-color: #00b3fff1;
+}
