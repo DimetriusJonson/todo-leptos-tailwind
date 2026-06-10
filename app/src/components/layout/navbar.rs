@@ -18,7 +18,7 @@ pub fn Navbar() -> impl IntoView {
     view! {
         <style lang="css">
             r#"
-                @media (scripting: none) {
+                @media screen and (max-width: 1024px) and (scripting: none) {
                     #mobile-menu {
                         display: block;
                     }
