@@ -121,7 +121,7 @@ fn UserButtons() -> impl IntoView {
                 let user = data.ok().unwrap_or_default();
                 if let Some(user_name)=user.username {
                         view! {
-                            <div class="navbar-item">
+                            <div class="flex items-center pl-2 py-2">
                                 <ActionForm action=logout>
                                     <Button
                                         color=Light
@@ -136,18 +136,16 @@ fn UserButtons() -> impl IntoView {
                         }.into_any()
                 } else {
                         view! {
-                            <div class="navbar-item">
+                            <div class="flex items-center pl-2 py-2">
                                     <ButtonLink
-                                        class_name="button is-warning is-soft is-rounded".to_owned()
                                         label="Создать пользователя".to_owned()
                                         href=UserRoutes::create_url().to_owned()
                                         color=Brown
                                         button_width=Auto
                                     />
                                 </div>
-                                <div class="navbar-item">
+                                <div class="flex items-center pl-2 py-2">
                                     <ButtonLink
-                                        class_name="is-light".to_owned()
                                         label="Войти".to_owned()
                                         href=UserRoutes::login_url().to_owned()
                                     />
