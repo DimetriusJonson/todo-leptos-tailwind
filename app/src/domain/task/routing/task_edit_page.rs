@@ -148,9 +148,9 @@ pub fn TaskEditForm(
                     <Button
                         label="Сохранить".to_owned()
                         button_width=ButtonWidth::Md
-                        loading=update_or_create_task.pending()
+                        loading=move || update_or_create_task.pending().get()
                         on_click=move |_| {}
-                        disabled=update_or_create_task.pending()
+                        disabled=move || update_or_create_task.pending().get()
                     />
                     <ButtonLink
                         label="Отмена".to_owned()

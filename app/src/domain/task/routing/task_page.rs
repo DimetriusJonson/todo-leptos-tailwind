@@ -101,8 +101,8 @@ pub fn TaskDetails(task: Task) -> impl IntoView {
                 <Button
                     color=Danger
                     label="Удалить".to_owned()
-                    loading=delete_task.pending()
-                    disabled=delete_task.pending()
+                    loading=move || delete_task.pending().get()
+                    disabled=move || delete_task.pending().get()
                     on_click=move |_| {}
                 />
             </ActionForm>

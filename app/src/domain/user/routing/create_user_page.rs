@@ -81,9 +81,9 @@ pub fn CreateUserPage() -> impl IntoView {
                         <Button
                             label="Создать".to_owned()
                             button_width=ButtonWidth::Md
-                            loading=create_user.pending()
+                            loading=move || create_user.pending().get()
                             on_click=move |_| {}
-                            disabled=create_user.pending()
+                            disabled=move || create_user.pending().get()
                         />
                     </div>
                 </fieldset>

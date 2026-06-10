@@ -90,9 +90,9 @@ pub fn LoginPage() -> impl IntoView {
                         <Button
                             label="Войти".to_owned()
                             button_width=ButtonWidth::Md
-                            loading=login.pending()
+                            loading=move || login.pending().get()
                             on_click=move |_| {}
-                            disabled=login.pending()
+                            disabled=move || login.pending().get()
                         />
                         <ButtonLink color=Ghost href=UserRoutes::create_url().to_owned() label="Создать".to_owned() />
 

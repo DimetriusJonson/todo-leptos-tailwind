@@ -69,9 +69,9 @@ pub fn TasksPanel() -> impl IntoView {
                                                 color=Light
                                                 class_name="text-xs md:text-base".to_owned()
                                                 label="Ok".to_owned()
-                                                loading={Memo::new(move |_| false)}
+                                                loading=move || false
                                                 on_click=move |_| {}
-                                                disabled={Memo::new(move |_| false)}
+                                                disabled=move || false
                                             />
                                         </noscript>
                                     </span>

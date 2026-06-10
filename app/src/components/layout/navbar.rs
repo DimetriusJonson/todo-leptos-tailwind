@@ -127,8 +127,8 @@ fn UserButtons() -> impl IntoView {
                                         color=Light
                                         class_name="ml-2".to_owned()
                                         label={format!("Выйти {}", user_name)}
-                                        loading=logout.pending()
-                                        disabled=logout.pending()
+                                        loading=move || logout.pending().get()
+                                        disabled=move || logout.pending().get()
                                         on_click=move |_| {}
                                     />
                                 </ActionForm>

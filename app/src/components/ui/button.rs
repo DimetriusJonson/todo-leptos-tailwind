@@ -30,11 +30,13 @@ pub fn Button(
     #[prop(optional)] color: ButtonColor,
     #[prop(optional)] text_size: ButtonTextSize,
     #[prop(optional)] button_width: ButtonWidth,
-
-    loading: Memo<bool>,
-    disabled: Memo<bool>,
+    loading: impl Fn() -> bool + Send + Sync + 'static,
+    disabled: impl Fn() -> bool + Send + Sync + 'static,
     on_click: impl FnMut(MouseEvent) + 'static,
 ) -> impl IntoView {
+    let loading_memo = Memo::new(move |_| loading());
+    let disabled_memo = Memo::new(move |_| disabled());
+
     let button_element: NodeRef<html::Button> = NodeRef::new();
     let aria_label = label.to_owned();
 
@@ -64,21 +66,21 @@ pub fn Button(
             id={id}
             aria-label={aria_label}
             class=move || format!("{} {} {} {} {} {} {}", base_classes, variant_classes, text_size_classes, button_width_classes, 
-                match loading.get() {
+                match loading_memo.get() {
                     true => "inline-flex justify-center items-center leading-6 transition ease-in-out duration-150".to_owned(),
                     false => "".to_owned(),
                 }, 
-                match loading.get() || disabled.get() {
+                match loading_memo.get() || disabled_memo.get() {
                     true => "cursor-not-allowed brightness-110".to_owned(),
                     false => "".to_owned(),
                 }, class_name)
             on:click=on_click
             on:mouseup=move |_| if let Some(button) = button_element.get() { button.blur().unwrap(); }
-            disabled=disabled
+            disabled=disabled_memo
            >
 
            <Show
-                when=move || loading.get()
+                when=move || loading_memo.get()
                 fallback=move || view! { {label.to_owned()} }
             >
                 <svg class="animate-spin [animation-duration:500ms] h-5 w-5 text-black" xmlns="http://w3.org" fill="none" viewBox="0 0 24 24">
