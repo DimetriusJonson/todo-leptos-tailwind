@@ -8,13 +8,13 @@ pub mod db {
 
     pub async fn get_tasks_from_db(
         pool: &DbPool,
-        user_id: Option<i64>,
+        user_id: Option<i32>,
     ) -> Result<Vec<Task>, sqlx::Error> {
         query_as!(
             Task,
             r#"
                 SELECT
-                    id,
+                    id AS "id!: i32",
                     title,
                     description,
                     priority,
@@ -30,14 +30,14 @@ pub mod db {
 
     pub async fn get_task_from_db(
         pool: &DbPool,
-        id: i64,
-        user_id: Option<i64>,
+        id: i32,
+        user_id: Option<i32>,
     ) -> Result<Option<Task>, sqlx::Error> {
         query_as!(
             Task,
             r#"
                 SELECT
-                    id,
+                    id AS "id!: i32",
                     title,
                     description,
                     priority,
@@ -55,13 +55,13 @@ pub mod db {
     pub async fn get_task_by_title_from_db(
         pool: &DbPool,
         title: &Option<String>,
-        user_id: i64,
+        user_id: i32,
     ) -> Result<Option<Task>, sqlx::Error> {
         query_as!(
             Task,
             r#"
                 SELECT
-                    id,
+                    id AS "id!: i32",
                     title,
                     description,
                     priority,
@@ -78,9 +78,9 @@ pub mod db {
 
     pub async fn delete_task_in_db(
         pool: &DbPool,
-        id: i64,
-        user_id: Option<i64>,
-    ) -> Result<i64, sqlx::Error> {
+        id: i32,
+        user_id: Option<i32>,
+    ) -> Result<i32, sqlx::Error> {
         let result = sqlx::query!(
             r#"
                     DELETE FROM tasks
@@ -93,13 +93,13 @@ pub mod db {
         .fetch_one(pool)
         .await?;
 
-        Ok(result.id)
+        Ok(result.id.try_into().unwrap())
     }
 
     pub async fn update_task_in_db(
         pool: &DbPool,
         patch: &Task,
-        user_id: Option<i64>,
+        user_id: Option<i32>,
     ) -> Result<Task, sqlx::Error> {
         let result = sqlx::query_as!(
             Task,
@@ -110,7 +110,7 @@ pub mod db {
                         priority=$3,
                         completed_at=$4
                     WHERE id = $5 and user_id=$6
-                    RETURNING id, title, description, priority, completed_at
+                    RETURNING id AS "id!: i32", title, description, priority, completed_at
             "#,
             patch.title,
             patch.description,
@@ -128,14 +128,14 @@ pub mod db {
     pub async fn create_task_in_db(
         pool: &DbPool,
         task: &Task,
-        user_id: i64,
+        user_id: i32,
     ) -> Result<Task, sqlx::Error> {
         query_as!(
             Task,
             r#"
                 INSERT INTO tasks (title, description, priority, completed_at, user_id)
                 VALUES ($1, $2, $3, $4, $5)
-                RETURNING id, title, description, priority, completed_at
+                RETURNING id AS "id!: i32", title, description, priority, completed_at
             "#,
             task.title,
             task.description,

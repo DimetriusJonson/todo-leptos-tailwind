@@ -4,12 +4,12 @@ pub mod db {
 
     use crate::{domain::user::model::user::User, common::DbPool};
 
-    pub async fn get_user_from_db(pool: &DbPool, id: i64) -> Result<Option<User>, sqlx::Error> {
+    pub async fn get_user_from_db(pool: &DbPool, id: i32) -> Result<Option<User>, sqlx::Error> {
         query_as!(
             User,
             r#"
                 SELECT
-                    id,
+                    id AS "id!: i32",
                     username,
                     password,
                     token
@@ -30,7 +30,7 @@ pub mod db {
             User,
             r#"
                 SELECT
-                    id,
+                    id AS "id!: i32",
                     username,
                     password,
                     token
@@ -49,7 +49,7 @@ pub mod db {
             r#"
                 INSERT INTO users (username, password)
                 VALUES ($1, $2)
-                RETURNING id, username, password, token
+                RETURNING id AS "id!: i32", username, password, token
             "#,
             user.username,
             user.password

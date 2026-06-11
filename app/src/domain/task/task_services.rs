@@ -5,7 +5,7 @@ use crate::components::ui::select_input::SelectOption;
 use crate::domain::task::model::task::Task;
 
 #[server]
-pub async fn get_task(id: i64) -> Result<Task, ServerFnError> {
+pub async fn get_task(id: i32) -> Result<Task, ServerFnError> {
     use super::task_db::db::*;
     use crate::common::api_error::ApiError;
     use crate::common::app_state::ssr::*;
@@ -29,7 +29,7 @@ pub async fn get_task(id: i64) -> Result<Task, ServerFnError> {
 }
 
 #[server]
-pub async fn delete_task(id: i64) -> Result<bool, ServerFnError> {
+pub async fn delete_task(id: i32) -> Result<bool, ServerFnError> {
     use super::task_db::db::*;
     use crate::common::app_state::ssr::*;
     use crate::domain::user::user_services::ssr::get_current_user;
@@ -124,7 +124,7 @@ pub async fn update_or_create_task(task: Task) -> Result<Task, ServerFnError> {
 }
 
 #[server]
-pub async fn change_completed_task(id: i64, completed: bool) -> Result<Task, ServerFnError> {
+pub async fn change_completed_task(id: i32, completed: bool) -> Result<Task, ServerFnError> {
     use super::task_db::db::*;
     use crate::common::api_error::ApiError;
     use crate::common::app_state::ssr::*;
