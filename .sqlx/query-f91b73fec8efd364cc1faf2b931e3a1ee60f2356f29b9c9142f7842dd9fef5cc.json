@@ -1,10 +1,10 @@
 {
   "db_name": "SQLite",
-  "query": "\n                SELECT\n                    id,\n                    title,\n                    description,\n                    priority,\n                    completed_at\n                FROM tasks\n                    WHERE title = $1 and deleted_at is null and user_id=$2\n                ",
+  "query": "\n                SELECT\n                    id AS \"id!: i32\",\n                    title,\n                    description,\n                    priority,\n                    completed_at\n                FROM tasks\n                WHERE deleted_at is null and user_id=$1\n            ",
   "describe": {
     "columns": [
       {
-        "name": "id",
+        "name": "id!: i32",
         "ordinal": 0,
         "type_info": "Integer"
       },
@@ -30,7 +30,7 @@
       }
     ],
     "parameters": {
-      "Right": 2
+      "Right": 1
     },
     "nullable": [
       false,
@@ -40,5 +40,5 @@
       true
     ]
   },
-  "hash": "6d3ed1be5ed114a731624d4bf03802bdf7cd8cd43390b24334f6d37de27146e2"
+  "hash": "f91b73fec8efd364cc1faf2b931e3a1ee60f2356f29b9c9142f7842dd9fef5cc"
 }

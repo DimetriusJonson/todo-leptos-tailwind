@@ -1,10 +1,10 @@
 {
   "db_name": "SQLite",
-  "query": "\n                INSERT INTO users (username, password)\n                VALUES ($1, $2)\n                RETURNING id, username, password, token\n            ",
+  "query": "\n                SELECT\n                    id AS \"id!: i32\",\n                    username,\n                    password,\n                    token\n                FROM users\n                    WHERE username = $1 and deleted_at is null\n            ",
   "describe": {
     "columns": [
       {
-        "name": "id",
+        "name": "id!: i32",
         "ordinal": 0,
         "type_info": "Integer"
       },
@@ -25,7 +25,7 @@
       }
     ],
     "parameters": {
-      "Right": 2
+      "Right": 1
     },
     "nullable": [
       false,
@@ -34,5 +34,5 @@
       true
     ]
   },
-  "hash": "5aea1a36ad67277ccd66d38bd43e190295d2aef3a411aa99e1e27523722b4da4"
+  "hash": "1cf273d259c1e5620adae1c007b1adcad041df76fba8509e184a04030e2061a6"
 }

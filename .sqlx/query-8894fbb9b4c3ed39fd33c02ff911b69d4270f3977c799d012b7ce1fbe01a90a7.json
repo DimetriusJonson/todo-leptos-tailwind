@@ -1,10 +1,10 @@
 {
   "db_name": "SQLite",
-  "query": "\n                SELECT\n                    id,\n                    title,\n                    description,\n                    priority,\n                    completed_at\n                FROM tasks\n                WHERE deleted_at is null and user_id=$1\n            ",
+  "query": "\n                INSERT INTO tasks (title, description, priority, completed_at, user_id)\n                VALUES ($1, $2, $3, $4, $5)\n                RETURNING id AS \"id!: i32\", title, description, priority, completed_at\n            ",
   "describe": {
     "columns": [
       {
-        "name": "id",
+        "name": "id!: i32",
         "ordinal": 0,
         "type_info": "Integer"
       },
@@ -30,7 +30,7 @@
       }
     ],
     "parameters": {
-      "Right": 1
+      "Right": 5
     },
     "nullable": [
       false,
@@ -40,5 +40,5 @@
       true
     ]
   },
-  "hash": "8e408bb49bf0aaa86ba726002b53dc04c7d5222469f02321b9b2b7070c8b0b05"
+  "hash": "8894fbb9b4c3ed39fd33c02ff911b69d4270f3977c799d012b7ce1fbe01a90a7"
 }
