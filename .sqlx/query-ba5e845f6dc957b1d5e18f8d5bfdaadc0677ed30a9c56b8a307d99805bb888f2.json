@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\n                SELECT\n                    id AS \"id!: i32\",\n                    title,\n                    description,\n                    priority,\n                    completed_at\n                FROM tasks\n                    WHERE title = $1 and deleted_at is null and user_id=$2\n                ",
+  "query": "\n                INSERT INTO tasks (title, description, priority, completed_at, user_id)\n                VALUES ($1, $2, $3, $4, $5)\n                RETURNING id AS \"id!: i32\", title, description, priority, completed_at AS \"completed_at!: DateTime<FixedOffset>\"\n            ",
   "describe": {
     "columns": [
       {
@@ -24,13 +24,13 @@
         "type_info": "Text"
       },
       {
-        "name": "completed_at",
+        "name": "completed_at!: DateTime<FixedOffset>",
         "ordinal": 4,
-        "type_info": "Text"
+        "type_info": "Null"
       }
     ],
     "parameters": {
-      "Right": 2
+      "Right": 5
     },
     "nullable": [
       false,
@@ -40,5 +40,5 @@
       true
     ]
   },
-  "hash": "d02f82fbabb47ef63de29a0adaebab4e6573d8d1642b8d1a49658a7110e05edf"
+  "hash": "ba5e845f6dc957b1d5e18f8d5bfdaadc0677ed30a9c56b8a307d99805bb888f2"
 }

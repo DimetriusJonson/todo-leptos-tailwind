@@ -1,24 +1,33 @@
 #[cfg(feature = "ssr")]
 pub mod db {
 
+    use chrono::{DateTime, FixedOffset};
     use sqlx::query_as;
 
     use crate::common::DbPool;
-    use crate::domain::task::model::task::Task;
+
+    #[derive(Debug, sqlx::FromRow)]
+    pub struct TaskInDb {
+        pub id: Option<i32>,
+        pub title: Option<String>,
+        pub description: Option<String>,
+        pub priority: Option<String>,
+        pub completed_at: Option<DateTime<FixedOffset>>,
+    }
 
     pub async fn get_tasks_from_db(
         pool: &DbPool,
         user_id: Option<i32>,
-    ) -> Result<Vec<Task>, sqlx::Error> {
+    ) -> Result<Vec<TaskInDb>, sqlx::Error> {
         query_as!(
-            Task,
+            TaskInDb,
             r#"
                 SELECT
                     id AS "id!: i32",
                     title,
                     description,
                     priority,
-                    completed_at
+                    completed_at AS "completed_at!: Option<DateTime<FixedOffset>>"
                 FROM tasks
                 WHERE deleted_at is null and user_id=$1
             "#,
@@ -32,16 +41,16 @@ pub mod db {
         pool: &DbPool,
         id: i32,
         user_id: Option<i32>,
-    ) -> Result<Option<Task>, sqlx::Error> {
+    ) -> Result<Option<TaskInDb>, sqlx::Error> {
         query_as!(
-            Task,
+            TaskInDb,
             r#"
                 SELECT
                     id AS "id!: i32",
                     title,
                     description,
                     priority,
-                    completed_at
+                    completed_at AS "completed_at!: Option<DateTime<FixedOffset>>"
                 FROM tasks
                     WHERE id = $1 and deleted_at is null and user_id=$2
                 "#,
@@ -56,16 +65,17 @@ pub mod db {
         pool: &DbPool,
         title: &Option<String>,
         user_id: i32,
-    ) -> Result<Option<Task>, sqlx::Error> {
+    ) -> Result<Option<TaskInDb>, sqlx::Error> {
+        let title = title.to_owned().unwrap();
         query_as!(
-            Task,
+            TaskInDb,
             r#"
                 SELECT
                     id AS "id!: i32",
                     title,
                     description,
                     priority,
-                    completed_at
+                    completed_at AS "completed_at!: Option<DateTime<FixedOffset>>"
                 FROM tasks
                     WHERE title = $1 and deleted_at is null and user_id=$2
                 "#,
@@ -98,11 +108,11 @@ pub mod db {
 
     pub async fn update_task_in_db(
         pool: &DbPool,
-        patch: &Task,
+        patch: &TaskInDb,
         user_id: Option<i32>,
-    ) -> Result<Task, sqlx::Error> {
+    ) -> Result<TaskInDb, sqlx::Error> {
         let result = sqlx::query_as!(
-            Task,
+            TaskInDb,
             r#"
                     UPDATE tasks
                     SET title=$1,
@@ -110,7 +120,7 @@ pub mod db {
                         priority=$3,
                         completed_at=$4
                     WHERE id = $5 and user_id=$6
-                    RETURNING id AS "id!: i32", title, description, priority, completed_at
+                    RETURNING id AS "id!: i32", title, description, priority, completed_at AS "completed_at!: Option<DateTime<FixedOffset>>"
             "#,
             patch.title,
             patch.description,
@@ -127,15 +137,15 @@ pub mod db {
 
     pub async fn create_task_in_db(
         pool: &DbPool,
-        task: &Task,
+        task: &TaskInDb,
         user_id: i32,
-    ) -> Result<Task, sqlx::Error> {
+    ) -> Result<TaskInDb, sqlx::Error> {
         query_as!(
-            Task,
+            TaskInDb,
             r#"
                 INSERT INTO tasks (title, description, priority, completed_at, user_id)
                 VALUES ($1, $2, $3, $4, $5)
-                RETURNING id AS "id!: i32", title, description, priority, completed_at
+                RETURNING id AS "id!: i32", title, description, priority, completed_at AS "completed_at!: Option<DateTime<FixedOffset>>"
             "#,
             task.title,
             task.description,

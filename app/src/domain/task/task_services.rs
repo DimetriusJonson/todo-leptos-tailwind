@@ -6,7 +6,7 @@ use crate::domain::task::model::task::Task;
 
 #[server]
 pub async fn get_task(id: i32) -> Result<Task, ServerFnError> {
-    use super::task_db::db::*;
+    use super::task_db::db::get_task_from_db;
     use crate::common::api_error::ApiError;
     use crate::common::app_state::ssr::*;
     use crate::domain::user::user_services::ssr::get_current_user;
@@ -19,13 +19,46 @@ pub async fn get_task(id: i32) -> Result<Task, ServerFnError> {
         if let Some(task) =
             get_task_from_db(&app_state.pool, id, user.id).await.map_err(ServerFnError::new)?
         {
-            return Ok(task);
+            return Ok(build_task_dto(&task));
         } else {
             return Err(ApiError::NotFound("Задача не найдена!".to_owned()))?;
         }
     }
 
     Ok(Task::default())
+}
+
+#[cfg(feature = "ssr")]
+fn build_task_dto(task: &super::task_db::db::TaskInDb) -> Task {
+    let completed_at = match task.completed_at {
+        Some(completed_at) => Some(completed_at.to_rfc2822()),
+        None => None,
+    };
+    Task {
+        id: task.id,
+        title: task.title.to_owned(),
+        description: task.description.to_owned(),
+        priority: task.priority.to_owned(),
+        completed_at: completed_at,
+    }
+}
+
+#[cfg(feature = "ssr")]
+fn build_task_db(task: &Task) -> Result<super::task_db::db::TaskInDb, ServerFnError> {
+    let completed_at = match &task.completed_at {
+        Some(completed_at) => Some(
+            <chrono::DateTime<chrono::FixedOffset>>::parse_from_rfc2822(&completed_at)
+                .map_err(ServerFnError::new)?,
+        ),
+        None => None,
+    };
+    Ok(super::task_db::db::TaskInDb {
+        id: task.id,
+        title: task.title.to_owned(),
+        description: task.description.to_owned(),
+        priority: task.priority.to_owned(),
+        completed_at: completed_at,
+    })
 }
 
 #[server]
@@ -51,7 +84,7 @@ pub async fn get_tasks(
     filter: Option<String>,
     sort_kind: Option<String>,
 ) -> Result<Vec<Task>, ServerFnError> {
-    use super::task_db::db::*;
+    use super::task_db::db::get_tasks_from_db;
     use crate::common::app_state::ssr::*;
     use crate::domain::task::model::task::{filter_task, sort_task};
     use crate::domain::user::user_services::ssr::get_current_user;
@@ -60,8 +93,13 @@ pub async fn get_tasks(
 
     if let Some(user) = get_current_user(false).await? {
         let app_state = use_app_state()?;
-        let mut tasks =
-            get_tasks_from_db(&app_state.pool, user.id).await.map_err(ServerFnError::new)?;
+
+        let mut tasks: Vec<Task> = get_tasks_from_db(&app_state.pool, user.id)
+            .await
+            .map_err(ServerFnError::new)?
+            .iter()
+            .map(|t| build_task_dto(&t))
+            .collect();
 
         if filter.is_some() {
             tasks = tasks.into_iter().filter(|t| filter_task(t, &filter)).collect::<Vec<Task>>();
@@ -80,7 +118,9 @@ pub async fn get_tasks(
 pub async fn update_or_create_task(task: Task) -> Result<Task, ServerFnError> {
     use validator::Validate;
 
-    use super::task_db::db::*;
+    use super::task_db::db::create_task_in_db;
+    use super::task_db::db::get_task_by_title_from_db;
+    use super::task_db::db::update_task_in_db;
     use crate::common::api_error::ApiError;
     use crate::common::app_state::ssr::*;
     use crate::domain::user::user_services::ssr::get_current_user;
@@ -107,17 +147,25 @@ pub async fn update_or_create_task(task: Task) -> Result<Task, ServerFnError> {
         }
 
         let saved_task = if task.id.is_some() {
-            update_task_in_db(&app_state.pool, Task { ..task }.fix_completed_at(), user.id)
-                .await
-                .map_err(ServerFnError::new)?
+            update_task_in_db(
+                &app_state.pool,
+                &build_task_db(Task { ..task }.fix_completed_at())?,
+                user.id,
+            )
+            .await
+            .map_err(ServerFnError::new)?
         } else {
-            create_task_in_db(&app_state.pool, Task { ..task }.fix_completed_at(), user.id.unwrap())
-                .await
-                .map_err(ServerFnError::new)?
+            create_task_in_db(
+                &app_state.pool,
+                &build_task_db(Task { ..task }.fix_completed_at())?,
+                user.id.unwrap(),
+            )
+            .await
+            .map_err(ServerFnError::new)?
         };
 
         leptos_axum::redirect(&format!("/task/{}", saved_task.id.unwrap()));
-        return Ok(saved_task);
+        return Ok(build_task_dto(&saved_task));
     }
 
     Ok(task)
@@ -125,7 +173,8 @@ pub async fn update_or_create_task(task: Task) -> Result<Task, ServerFnError> {
 
 #[server]
 pub async fn change_completed_task(id: i32, completed: bool) -> Result<Task, ServerFnError> {
-    use super::task_db::db::*;
+    use super::task_db::db::get_task_from_db;
+    use super::task_db::db::update_task_in_db;
     use crate::common::api_error::ApiError;
     use crate::common::app_state::ssr::*;
     use crate::domain::user::user_services::ssr::get_current_user;
@@ -137,13 +186,15 @@ pub async fn change_completed_task(id: i32, completed: bool) -> Result<Task, Ser
             get_task_from_db(&app_state.pool, id, user.id).await.map_err(ServerFnError::new)?
         {
             task.completed_at = match completed {
-                true => Some("on".to_owned()),
+                true => Some(chrono::Utc::now().fixed_offset()),
                 false => None,
             };
 
-            return update_task_in_db(&app_state.pool, task.fix_completed_at(), user.id)
+            let saved_task = update_task_in_db(&app_state.pool, &task, user.id)
                 .await
-                .map_err(ServerFnError::new);
+                .map_err(ServerFnError::new)?;
+
+            return Ok(build_task_dto(&saved_task));
         } else {
             return Err(ApiError::NotFound("Задача не найдена!".to_owned()))?;
         }
