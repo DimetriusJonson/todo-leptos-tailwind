@@ -10,7 +10,7 @@ pub async fn create_pool() -> Result<DbPool, sqlx::Error> {
         .await
         .expect("could not connect to database_url");
 
-    sqlx::migrate!("./migrations/postgres")
+    sqlx::migrate!("migrations/postgres")
         .run(&pool)
         .await
         .expect("migrations failed");
