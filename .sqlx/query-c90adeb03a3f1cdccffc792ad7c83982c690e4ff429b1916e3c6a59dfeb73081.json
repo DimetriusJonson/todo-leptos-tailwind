@@ -1,0 +1,47 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT\n                    id AS \"id!: i32\",\n                    title,\n                    description,\n                    priority,\n                    completed_at AS \"completed_at!: Option<DateTime<FixedOffset>>\"\n                FROM tasks\n                    WHERE id = $1 and deleted_at is null and user_id=$2\n                ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id!: i32",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "priority",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "completed_at!: Option<DateTime<FixedOffset>>",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "c90adeb03a3f1cdccffc792ad7c83982c690e4ff429b1916e3c6a59dfeb73081"
+}

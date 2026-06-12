@@ -1,0 +1,50 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO tasks (title, description, priority, completed_at, user_id)\n                VALUES ($1, $2, $3, $4, $5)\n                RETURNING id AS \"id!: i32\", title, description, priority, completed_at AS \"completed_at!: Option<DateTime<FixedOffset>>\"\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id!: i32",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "priority",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "completed_at!: Option<DateTime<FixedOffset>>",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Text",
+        "Varchar",
+        "Timestamptz",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "39565c8df8313a3bbcbdbd8dbc5d19b39d7898fe8d2a4ac39bab3df5ddc4dbf2"
+}
