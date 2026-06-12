@@ -29,7 +29,7 @@ wasm-bindgen = { workspace = true, optional = true }
 console_error_panic_hook = { workspace = true, optional = true }
 axum = { workspace = true, optional = true }
 leptos_axum = { workspace = true, optional = true }
-sqlx = { workspace = true, optional = true, features = ["sqlite"]}
+sqlx = { workspace = true, optional = true, features = ["postgres", "tls-rustls"]}
 tokio = { workspace = true, optional = true }
 tower = { workspace = true, optional = true }
 tower-http = { workspace = true, optional = true }

@@ -1,3 +1,5 @@
+#[cfg(feature = "ssr")]
+use chrono::Datelike;
 use leptos::server;
 use leptos::server_fn::ServerFnError;
 
@@ -213,7 +215,13 @@ fn sort_to_option(sort_kind: String) -> SelectOption {
 impl From<TaskInDb> for Task {
     fn from(task: TaskInDb) -> Self {
         let completed_at = match task.completed_at {
-            Some(completed_at) => Some(completed_at.to_rfc2822()),
+            Some(completed_at) => { 
+                if completed_at.year() == 1950 {
+                    None
+                } else {
+                    Some(completed_at.to_rfc2822()) 
+                }
+            },
             None => None,
         };
         Task {
