@@ -29,7 +29,7 @@ wasm-bindgen = { workspace = true, optional = true }
 console_error_panic_hook = { workspace = true, optional = true }
 axum = { workspace = true, optional = true }
 leptos_axum = { workspace = true, optional = true }
-sqlx = { workspace = true, optional = true }
+sqlx = { workspace = true, optional = true, features = ["sqlite"]}
 tokio = { workspace = true, optional = true }
 tower = { workspace = true, optional = true }
 tower-http = { workspace = true, optional = true }
@@ -37,9 +37,9 @@ jsonwebtoken = { workspace = true, optional = true }
 bcrypt = { workspace = true, optional = true }
 axum-extra = { workspace = true, optional = true }
 
-
 [features]
 default = ["csr"]
+
 csr = ["leptos/csr"]
 hydrate = ["leptos/hydrate", "dep:console_error_panic_hook", "dep:wasm-bindgen"]
 ssr = [
@@ -60,3 +60,4 @@ ssr = [
     "leptos_meta/ssr",
     "leptos_router/ssr",
 ]
+

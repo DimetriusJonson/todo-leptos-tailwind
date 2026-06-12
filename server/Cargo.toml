@@ -5,6 +5,11 @@ edition = "2024"
 resolver = "2"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["sqlx-sqlite"]
+sqlx-postgres = ["sqlx/postgres"]
+sqlx-sqlite = ["sqlx/sqlite"]
+
 [dependencies]
 anyhow.workspace = true
 axum-macros.workspace = true

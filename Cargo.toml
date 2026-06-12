@@ -18,8 +18,8 @@ leptos_router = { version = "0.8" }
 log = "0.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1.0.149"
-validator = { version = "0.20.0", features = ["derive"]}
-sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "chrono", "macros", "json"] }
+validator = { version = "0.20.0", features = ["derive"] }
+sqlx = { version = "0.8", features = ["runtime-tokio", "chrono", "macros"] }
 tokio = { version = "1", features = ["rt-multi-thread"] }
 tower = "0.5"
 tower-http = { version = "0.6", features = ["fs", "trace", "compression-gzip"] }
@@ -28,12 +28,12 @@ tracing-log = "0.2"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = { version = "1.23.1", features = ["v4", "fast-rng", "js"] }
 wasm-bindgen = "0.2"
-web-sys = { version = "0.3"}
+web-sys = { version = "0.3" }
 jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
 chrono = { version = "0.4.44", features = ["serde"] }
 bcrypt = { version = "0.19.0" }
 dotenvy = { version = "0.15.7" }
-tw_merge = { version = "0.1", features = ["variant", "debug"]}
+tw_merge = { version = "0.1", features = ["variant", "debug"] }
 
 
 [[workspace.metadata.leptos]]
@@ -54,7 +54,7 @@ site-addr = "127.0.0.1:3000"
 reload-port = 3001
 browserquery = "defaults"
 bin-features = []
-bin-default-features = false
+bin-default-features = true
 lib-features = ["hydrate"]
 lib-default-features = false
 lib-profile-release = "wasm-release"
@@ -74,12 +74,11 @@ panic = "abort"
 
 [profile.release]
 # Optimize for size
-opt-level = "z"      # Optimize for size (or "s" for slightly less aggressive)
-lto = true           # Link-Time Optimization
-codegen-units = 1    # Single codegen unit for better optimization
+opt-level = "z"   # Optimize for size (or "s" for slightly less aggressive)
+lto = true        # Link-Time Optimization
+codegen-units = 1 # Single codegen unit for better optimization
 #panic = "abort"      # Smaller binary, no unwinding
-strip = true         # Strip symbols
+strip = true # Strip symbols
 
 [profile.release.package."*"]
-opt-level = "z"      # Also optimize dependencies for size
-
+opt-level = "z" # Also optimize dependencies for size

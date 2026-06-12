@@ -4,6 +4,9 @@ use leptos::server_fn::ServerFnError;
 use crate::components::ui::select_input::SelectOption;
 use crate::domain::task::model::task::Task;
 
+#[cfg(feature = "ssr")]
+use crate::domain::task::task_db::db::TaskInDb;
+
 #[server]
 pub async fn get_task(id: i32) -> Result<Task, ServerFnError> {
     use super::task_db::db::get_task_from_db;
@@ -19,46 +22,13 @@ pub async fn get_task(id: i32) -> Result<Task, ServerFnError> {
         if let Some(task) =
             get_task_from_db(&app_state.pool, id, user.id).await.map_err(ServerFnError::new)?
         {
-            return Ok(build_task_dto(&task));
+            return Ok(task.into());
         } else {
             return Err(ApiError::NotFound("Задача не найдена!".to_owned()))?;
         }
     }
 
     Ok(Task::default())
-}
-
-#[cfg(feature = "ssr")]
-fn build_task_dto(task: &super::task_db::db::TaskInDb) -> Task {
-    let completed_at = match task.completed_at {
-        Some(completed_at) => Some(completed_at.to_rfc2822()),
-        None => None,
-    };
-    Task {
-        id: task.id,
-        title: task.title.to_owned(),
-        description: task.description.to_owned(),
-        priority: task.priority.to_owned(),
-        completed_at: completed_at,
-    }
-}
-
-#[cfg(feature = "ssr")]
-fn build_task_db(task: &Task) -> Result<super::task_db::db::TaskInDb, ServerFnError> {
-    let completed_at = match &task.completed_at {
-        Some(completed_at) => Some(
-            <chrono::DateTime<chrono::FixedOffset>>::parse_from_rfc2822(&completed_at)
-                .map_err(ServerFnError::new)?,
-        ),
-        None => None,
-    };
-    Ok(super::task_db::db::TaskInDb {
-        id: task.id,
-        title: task.title.to_owned(),
-        description: task.description.to_owned(),
-        priority: task.priority.to_owned(),
-        completed_at: completed_at,
-    })
 }
 
 #[server]
@@ -97,8 +67,8 @@ pub async fn get_tasks(
         let mut tasks: Vec<Task> = get_tasks_from_db(&app_state.pool, user.id)
             .await
             .map_err(ServerFnError::new)?
-            .iter()
-            .map(|t| build_task_dto(&t))
+            .into_iter()
+            .map(|t| t.into())
             .collect();
 
         if filter.is_some() {
@@ -146,10 +116,12 @@ pub async fn update_or_create_task(task: Task) -> Result<Task, ServerFnError> {
             ))?;
         }
 
+        let patch = Task { ..task }.fix_completed_at().to_owned();
+
         let saved_task = if task.id.is_some() {
             update_task_in_db(
                 &app_state.pool,
-                &build_task_db(Task { ..task }.fix_completed_at())?,
+                &(patch).into(),
                 user.id,
             )
             .await
@@ -157,7 +129,7 @@ pub async fn update_or_create_task(task: Task) -> Result<Task, ServerFnError> {
         } else {
             create_task_in_db(
                 &app_state.pool,
-                &build_task_db(Task { ..task }.fix_completed_at())?,
+                &(patch).into(),
                 user.id.unwrap(),
             )
             .await
@@ -165,7 +137,7 @@ pub async fn update_or_create_task(task: Task) -> Result<Task, ServerFnError> {
         };
 
         leptos_axum::redirect(&format!("/task/{}", saved_task.id.unwrap()));
-        return Ok(build_task_dto(&saved_task));
+        return Ok((saved_task).into());
     }
 
     Ok(task)
@@ -194,7 +166,7 @@ pub async fn change_completed_task(id: i32, completed: bool) -> Result<Task, Ser
                 .await
                 .map_err(ServerFnError::new)?;
 
-            return Ok(build_task_dto(&saved_task));
+            return Ok((saved_task).into());
         } else {
             return Err(ApiError::NotFound("Задача не найдена!".to_owned()))?;
         }
@@ -234,5 +206,42 @@ fn sort_to_option(sort_kind: String) -> SelectOption {
         "Title" => (Some(sort_kind), "Название".to_owned()),
         "Priority" => (Some(sort_kind), "Приоритет".to_owned()),
         _ => (None, "Не выбран".to_owned()),
+    }
+}
+
+#[cfg(feature = "ssr")]
+impl From<TaskInDb> for Task {
+    fn from(task: TaskInDb) -> Self {
+        let completed_at = match task.completed_at {
+            Some(completed_at) => Some(completed_at.to_rfc2822()),
+            None => None,
+        };
+        Task {
+            id: task.id,
+            title: task.title.to_owned(),
+            description: task.description.to_owned(),
+            priority: task.priority.to_owned(),
+            completed_at: completed_at,
+        }
+    }
+}
+
+#[cfg(feature = "ssr")]
+impl From<Task> for TaskInDb {
+    fn from(task: Task) -> Self {
+        let completed_at = match &task.completed_at {
+            Some(completed_at) => Some(
+                <chrono::DateTime<chrono::FixedOffset>>::parse_from_rfc2822(&completed_at).unwrap(),
+            ),
+            None => None,
+        };
+
+        TaskInDb {
+            id: task.id,
+            title: task.title.to_owned(),
+            description: task.description.to_owned(),
+            priority: task.priority.to_owned(),
+            completed_at: completed_at,
+        }
     }
 }

@@ -1,6 +1,6 @@
 use app::common::DbPool;
 
-/*
+#[cfg(feature = "sqlx-postgres")]
 pub async fn create_pool() -> Result<DbPool, sqlx::Error> {
     let database_url = std::env::var("DATABASE_URL").expect("no database url specify");
     let pool = sqlx::postgres::PgPoolOptions::new()
@@ -17,9 +17,8 @@ pub async fn create_pool() -> Result<DbPool, sqlx::Error> {
 
     Ok(pool)
 }
- */
-
  
+#[cfg(feature = "sqlx-sqlite")]
 pub async fn create_pool() -> Result<DbPool, sqlx::Error> {
     use log::info;
     use sqlx::migrate::MigrateDatabase;
