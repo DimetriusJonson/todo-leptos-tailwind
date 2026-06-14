@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                    UPDATE tasks\n                    SET title=$1,\n                        description=$2,\n                        priority=$3,\n                        completed_at=$4\n                    WHERE id = $5 and user_id=$6\n                    RETURNING id AS \"id!: i32\", title, description, priority, completed_at AS \"completed_at!: Option<DateTime<FixedOffset>>\"\n            ",
+  "query": "\n                SELECT\n                    id AS \"id!: i32\",\n                    title,\n                    description,\n                    priority,\n                    completed_at AS \"completed_at!: Option<OffsetDateTime>\"\n                FROM tasks\n                WHERE deleted_at is null and user_id=$1\n            ",
   "describe": {
     "columns": [
       {
@@ -25,17 +25,12 @@
       },
       {
         "ordinal": 4,
-        "name": "completed_at!: Option<DateTime<FixedOffset>>",
+        "name": "completed_at!: Option<OffsetDateTime>",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
-        "Varchar",
-        "Text",
-        "Varchar",
-        "Timestamptz",
-        "Int4",
         "Int4"
       ]
     },
@@ -47,5 +42,5 @@
       true
     ]
   },
-  "hash": "ae9d41babb5aebd5305686583c279e26f25a98a34074bdb4cc33025065c608d8"
+  "hash": "f55d688bea28645bd5115afa8dd930b9f8ab5b4d2454213bdbf34f207a82fbf3"
 }
