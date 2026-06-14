@@ -1,5 +1,3 @@
-#[cfg(feature = "ssr")]
-use chrono::Datelike;
 use leptos::server;
 use leptos::server_fn::ServerFnError;
 
@@ -121,21 +119,13 @@ pub async fn update_or_create_task(task: Task) -> Result<Task, ServerFnError> {
         let patch = Task { ..task }.fix_completed_at().to_owned();
 
         let saved_task = if task.id.is_some() {
-            update_task_in_db(
-                &app_state.pool,
-                &(patch).into(),
-                user.id,
-            )
-            .await
-            .map_err(ServerFnError::new)?
+            update_task_in_db(&app_state.pool, &(patch).into(), user.id)
+                .await
+                .map_err(ServerFnError::new)?
         } else {
-            create_task_in_db(
-                &app_state.pool,
-                &(patch).into(),
-                user.id.unwrap(),
-            )
-            .await
-            .map_err(ServerFnError::new)?
+            create_task_in_db(&app_state.pool, &(patch).into(), user.id.unwrap())
+                .await
+                .map_err(ServerFnError::new)?
         };
 
         leptos_axum::redirect(&format!("/task/{}", saved_task.id.unwrap()));
@@ -160,7 +150,7 @@ pub async fn change_completed_task(id: i32, completed: bool) -> Result<Task, Ser
             get_task_from_db(&app_state.pool, id, user.id).await.map_err(ServerFnError::new)?
         {
             task.completed_at = match completed {
-                true => Some(chrono::Utc::now().fixed_offset()),
+                true => Some(time::OffsetDateTime::now_utc()),
                 false => None,
             };
 
@@ -215,13 +205,16 @@ fn sort_to_option(sort_kind: String) -> SelectOption {
 impl From<TaskInDb> for Task {
     fn from(task: TaskInDb) -> Self {
         let completed_at = match task.completed_at {
-            Some(completed_at) => { 
+            Some(completed_at) => {
                 if completed_at.year() == 1950 {
                     None
                 } else {
-                    Some(completed_at.to_rfc2822()) 
+                    let rfc2822_string = completed_at
+                        .format(&time::format_description::well_known::Rfc2822)
+                        .unwrap_or_else(|_| panic!("failed format completed_at={}", completed_at));
+                    Some(rfc2822_string)
                 }
-            },
+            }
             None => None,
         };
         Task {
@@ -229,7 +222,7 @@ impl From<TaskInDb> for Task {
             title: task.title.to_owned(),
             description: task.description.to_owned(),
             priority: task.priority.to_owned(),
-            completed_at: completed_at,
+            completed_at,
         }
     }
 }
@@ -237,19 +230,18 @@ impl From<TaskInDb> for Task {
 #[cfg(feature = "ssr")]
 impl From<Task> for TaskInDb {
     fn from(task: Task) -> Self {
-        let completed_at = match &task.completed_at {
-            Some(completed_at) => Some(
-                <chrono::DateTime<chrono::FixedOffset>>::parse_from_rfc2822(&completed_at).unwrap(),
-            ),
-            None => None,
-        };
+        let completed_at = task.completed_at.as_ref().map(|completed_at| <time::OffsetDateTime>::parse(
+                    completed_at,
+                    &time::format_description::well_known::Rfc2822,
+                )
+                .unwrap_or_else(|_| panic!("Failed parse completed_at={}", completed_at)));
 
         TaskInDb {
             id: task.id,
             title: task.title.to_owned(),
             description: task.description.to_owned(),
             priority: task.priority.to_owned(),
-            completed_at: completed_at,
+            completed_at,
         }
     }
 }

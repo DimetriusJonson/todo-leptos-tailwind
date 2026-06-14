@@ -1,7 +1,7 @@
 #[cfg(feature = "ssr")]
 pub mod db {
 
-    use chrono::{DateTime, FixedOffset};
+    use time::OffsetDateTime;
     use sqlx::query_as;
 
     use crate::common::DbPool;
@@ -12,7 +12,7 @@ pub mod db {
         pub title: Option<String>,
         pub description: Option<String>,
         pub priority: Option<String>,
-        pub completed_at: Option<DateTime<FixedOffset>>,
+        pub completed_at: Option<OffsetDateTime>,
     }
 
     pub async fn get_tasks_from_db(
@@ -27,7 +27,7 @@ pub mod db {
                     title,
                     description,
                     priority,
-                    completed_at AS "completed_at!: Option<DateTime<FixedOffset>>"
+                    completed_at AS "completed_at!: Option<OffsetDateTime>"
                 FROM tasks
                 WHERE deleted_at is null and user_id=$1
             "#,
@@ -50,7 +50,7 @@ pub mod db {
                     title,
                     description,
                     priority,
-                    completed_at AS "completed_at!: Option<DateTime<FixedOffset>>"
+                    completed_at AS "completed_at!: Option<OffsetDateTime>"
                 FROM tasks
                     WHERE id = $1 and deleted_at is null and user_id=$2
                 "#,
@@ -75,7 +75,7 @@ pub mod db {
                     title,
                     description,
                     priority,
-                    completed_at AS "completed_at!: Option<DateTime<FixedOffset>>"
+                    completed_at AS "completed_at!: Option<OffsetDateTime>"
                 FROM tasks
                     WHERE title = $1 and deleted_at is null and user_id=$2
                 "#,
@@ -103,7 +103,7 @@ pub mod db {
         .fetch_one(pool)
         .await?;
 
-        Ok(result.id.try_into().unwrap())
+        Ok(result.id)
     }
 
     pub async fn update_task_in_db(
@@ -120,7 +120,7 @@ pub mod db {
                         priority=$3,
                         completed_at=$4
                     WHERE id = $5 and user_id=$6
-                    RETURNING id AS "id!: i32", title, description, priority, completed_at AS "completed_at!: Option<DateTime<FixedOffset>>"
+                    RETURNING id AS "id!: i32", title, description, priority, completed_at AS "completed_at!: Option<OffsetDateTime>"
             "#,
             patch.title,
             patch.description,
@@ -145,7 +145,7 @@ pub mod db {
             r#"
                 INSERT INTO tasks (title, description, priority, completed_at, user_id)
                 VALUES ($1, $2, $3, $4, $5)
-                RETURNING id AS "id!: i32", title, description, priority, completed_at AS "completed_at!: Option<DateTime<FixedOffset>>"
+                RETURNING id AS "id!: i32", title, description, priority, completed_at AS "completed_at!: Option<OffsetDateTime>"
             "#,
             task.title,
             task.description,

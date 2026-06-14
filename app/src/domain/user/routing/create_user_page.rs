@@ -29,12 +29,9 @@ pub fn CreateUserPage() -> impl IntoView {
 
     let common_error = move || ui_build_common_error(validation_errors);
 
-    Effect::new(move |_| match create_user.value().get() {
-        Some(Ok(user)) => {
-            show_info(format!("Создан пользователь {}", &user.username.unwrap()), messages);
-            create_user.clear();
-        },
-        _ => (),
+    Effect::new(move |_| if let Some(Ok(user)) = create_user.value().get() {
+        show_info(format!("Создан пользователь {}", &user.username.unwrap()), messages);
+        create_user.clear();
     });
 
     view! {
